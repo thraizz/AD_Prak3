@@ -1,50 +1,41 @@
+#pragma once
 #include "iostream"
 #include "DVK.h"
 #include "string"
 #include "Util.h"
-#include "windows.h"
+#include "time.h"
 
 using namespace std;
 
 
-void beginMessung(LONGLONG *g_LastCount, LONGLONG *g_FirstCount, LONGLONG *g_Frequency, double *nulltime){
-
-	//----------------------------------------------------------------------
-	//
-	//    Zeitmessung im æs-Bereich
-	//    TESTANWENDUNG
-	//    Author: tbird
-	//    Date: 20.11.2007
-	//
-	//----------------------------------------------------------------------
-
+void beginMessung(long long *g_LastCount, long long *g_FirstCount, long long *g_Frequency, double *nulltime){
 	// Variablen
-	LONGLONG g_FirstNullCount, g_LastNullCount;
+	long long g_FirstNullCount, g_LastNullCount;
 
 	// Frequenz holen
-	if(!QueryPerformanceFrequency((LARGE_INTEGER*) g_Frequency))
+	if(!QueryPerformanceFrequency((long int*) g_Frequency))
 		printf("Performance Counter nicht vorhanden");
 
 	double resolution = 1000000 / ((double) *g_Frequency);
 
-	printf("Frequenz des Counters:  %lld kHz\n", *g_Frequency / 1000);  //lld -> LONGLONG darstellung
+	printf("Frequenz des Counters:  %lld kHz\n", *g_Frequency / 1000);  //lld -> long long darstellung
 	printf("Dadurch maximale Aufloesung: %4.5f us\n", resolution);
 
 	// null-messung
-	QueryPerformanceCounter((LARGE_INTEGER*) &g_FirstNullCount);
-	QueryPerformanceCounter((LARGE_INTEGER*) &g_LastNullCount);
+	QueryPerformanceCounter((long int*) &g_FirstNullCount);
+	QueryPerformanceCounter((long int*) &g_LastNullCount);
 	*nulltime = (((double) (g_LastNullCount - g_FirstNullCount)) / ((double) *g_Frequency));
 
 	printf("Null-Zeit: %4.5f us\n", *nulltime * 1000000);
 
 	// beginn messung
-	QueryPerformanceCounter((LARGE_INTEGER*) g_FirstCount);
+	QueryPerformanceCounter((long int*) g_FirstCount);
 }
 
-void endeMessung(LONGLONG g_LastCount, LONGLONG g_FirstCount, LONGLONG g_Frequency, double nulltime){
+void endeMessung(long long g_LastCount, long long g_FirstCount, long long g_Frequency, double nulltime){
 
 	// 2. Messung
-	QueryPerformanceCounter((LARGE_INTEGER*) &g_LastCount);
+	QueryPerformanceCounter((long int*) &g_LastCount);
 
 	double dTimeDiff = (((double) (g_LastCount - g_FirstCount)) / ((double) g_Frequency));
 
@@ -69,19 +60,16 @@ int main(){
 	string nameDat;
 
 	do{
-		cout << "0 Ende" << endl
-			<< "1 Verkettete Liste anlegen" << endl
-			<< "2 Bubble Sort" << endl
-			<< "3 Insertion Sort" << endl
-			<< "4 Quick Sort" << endl
-			<< "5 Selection Sort" << endl
-			<< "6 Merge Sort" << endl
-			<< "7 Heap Sort" << endl;
+		cout << "1 Verkettete Liste anlegen" << endl
+			<< "2 Heap Sort" << endl
+			<< "3 Selection Sort" << endl
+			<< "4 Daten der Liste schreiben" << endl
+			<< "5 Ende" << endl;
 
 		choise = readInt();
 
 		switch(choise){
-			case 0:
+			case 5:
 				cout << "Auf wiedersehen" << endl;
 				break;
 
@@ -122,73 +110,11 @@ int main(){
 			}
 			break;
 
-			case 2:
-			{
-				LONGLONG g_Frequency = 0, g_FirstCount = 0, g_LastCount = 0;
-				double nulltime;
 
-				GEOKO **arrCpy = cpyArr(liste->getIndex(), liste->getAnz());
-
-				beginMessung(&g_LastCount, &g_FirstCount, &g_Frequency, &nulltime);
-
-				// ###############
-				// # Bubble Sort #
-				// ###############
-				liste->bubbleSort(arrCpy);
-
-				endeMessung(g_LastCount, g_FirstCount, g_Frequency, nulltime);
-
-				// Schreiben in Datei
-				schreiben(arrCpy, liste->getAnz(), nameDat);
-			}
-			break;
 
 			case 3:
 			{
-				LONGLONG g_Frequency = 0, g_FirstCount = 0, g_LastCount = 0;
-				double nulltime;
-
-				GEOKO **arrCpy = cpyArr(liste->getIndex(), liste->getAnz());
-
-				beginMessung(&g_LastCount, &g_FirstCount, &g_Frequency, &nulltime);
-
-				// ##################
-				// # Insertion Sort #
-				// ##################
-				liste->insertionSort(arrCpy);
-
-				endeMessung(g_LastCount, g_FirstCount, g_Frequency, nulltime);
-
-				// Schreiben in Datei
-				schreiben(arrCpy, liste->getAnz(), nameDat);
-			}
-			break;
-
-			case 4:
-			{
-				LONGLONG g_Frequency = 0, g_FirstCount = 0, g_LastCount = 0;
-				double nulltime;
-
-				GEOKO **arrCpy = cpyArr(liste->getIndex(), liste->getAnz());
-
-				beginMessung(&g_LastCount, &g_FirstCount, &g_Frequency, &nulltime);
-
-				// ##############
-				// # Quick Sort #
-				// ##############
-				liste->quicksort(0, liste->getAnz() - 1, arrCpy);
-
-				endeMessung(g_LastCount, g_FirstCount, g_Frequency, nulltime);
-
-				// Schreiben in Datei
-				schreiben(arrCpy, liste->getAnz(), nameDat);
-
-			}
-			break;
-
-			case 5:
-			{
-				LONGLONG g_Frequency = 0, g_FirstCount = 0, g_LastCount = 0;
+				long long g_Frequency = 0, g_FirstCount = 0, g_LastCount = 0;
 				double nulltime;
 				GEOKO **arrCpy = cpyArr(liste->getIndex(), liste->getAnz());
 
@@ -206,39 +132,14 @@ int main(){
 			}
 			break;
 
-			case 6:
+			case 2:
 			{
-				LONGLONG g_Frequency = 0, g_FirstCount = 0, g_LastCount = 0;
+				long long g_Frequency = 0, g_FirstCount = 0, g_LastCount = 0;
 				double nulltime;
 
 				GEOKO **arrCpy = cpyArr(liste->getIndex(), liste->getAnz());
 
 				beginMessung(&g_LastCount, &g_FirstCount, &g_Frequency, &nulltime);
-
-				// ##############
-				// # Merge Sort #
-				// ##############
-				liste->mergeSort(0, liste->getAnz() - 1, arrCpy);
-
-				endeMessung(g_LastCount, g_FirstCount, g_Frequency, nulltime);
-
-				// Schreiben in Datei
-				schreiben(arrCpy, liste->getAnz(), nameDat);
-			}
-			break;
-
-			case 7:
-			{
-				LONGLONG g_Frequency = 0, g_FirstCount = 0, g_LastCount = 0;
-				double nulltime;
-
-				GEOKO **arrCpy = cpyArr(liste->getIndex(), liste->getAnz());
-
-				beginMessung(&g_LastCount, &g_FirstCount, &g_Frequency, &nulltime);
-
-				// #############
-				// # Heap Sort #
-				// #############
 				liste->heapSort(arrCpy);
 
 				endeMessung(g_LastCount, g_FirstCount, g_Frequency, nulltime);
@@ -251,7 +152,7 @@ int main(){
 				cout << "ungueltige eingabe!" << endl;
 				break;
 		}
-	} while(choise != 0);
+	} while(choise != 5);
 
 	if(liste != nullptr){
 		delete liste;

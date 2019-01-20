@@ -19,7 +19,8 @@ DVK::DVK( int MAX, string path ){
 	double xb,xl;
 	double br_ges=0, la_ges=0;
 
-	this->Index = new GEOKO[*this->MAX]; 
+	current->Index = (GEOKO *)malloc(*this->MAX*sizeof(GEOKO));
+	current->Index = new GEOKO[*this->MAX]; 
 		
 	ifstream file(path);
 
@@ -30,10 +31,8 @@ DVK::DVK( int MAX, string path ){
 
 	while (*current->ANZ<*current->MAX){
 
-		cout << "ANZ: " << *current->ANZ << "MAX: " << *current->MAX << endl;
 		getline(file, line, ',');
 		line.erase(remove_if(line.begin(), line.end(), ::isspace), line.end());
-		cout << line << endl;
 		br = stod(line);
 
 		getline(file, line, ';');	
@@ -53,7 +52,7 @@ DVK::DVK( int MAX, string path ){
 		laSec = (double)((xl  - laMin) * 60);
 
 		temp = new GEOKO(brGr, laGr, brMin, laMin, brSec, laSec,br,la);
-
+		
 		br_ges += br;
 		la_ges += la;
 
@@ -61,27 +60,24 @@ DVK::DVK( int MAX, string path ){
 		if (*current->ANZ == 0){
 			current->data = temp;
 			current->Index[*current->ANZ] = *temp;
-			
-			current->N->ANZ = current->ANZ;
-			cout << *current->ANZ << endl;
-	        current->N->MAX = current->MAX;
-			
-			current->N->current = current;
-			current->N->V = current;
 			*current->ANZ += 1;
-			current = current->N;
+
 		} else {
 
-		cout << "ANy: " << endl;
+	
+		
+		
+		current->Index[*current->ANZ] = *temp;
 		current->anhaenge(temp);
 
-		current->Index[*current->ANZ] = *temp;
 
-		cout << "ANZ: " << endl;
+
+		
 
 		}
 	
-
+cout << "end " << endl;
+cout << "ANZ: " << *current->ANZ << " MAX: " << *current->MAX << endl;
 		
 
 	}
@@ -120,19 +116,20 @@ int DVK::getAnz()
 
 void DVK::anhaenge(GEOKO* geo){
 
+
 	if (current->ANZ == current->MAX)
 		return;
 
-
-	while (current->N != nullptr)
-		current = current->N;
-
 	current->N = new DVK(geo);
-	current->N->ANZ = current->ANZ;
-	current->N->MAX = current->MAX;
-	current->N->current = current;
+	
 	current->N->V = current;
+	
 	current = current->N;
+	
+	current->ANZ = current->V->ANZ;
+
+	current->MAX = current->V->MAX;
+
 	*current->ANZ += 1;
 
 

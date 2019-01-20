@@ -1,88 +1,83 @@
 #include "GEOKO.h"
-#include "cmath"
 
-// Initialisierungskonstruktor
-GEOKO::GEOKO(int brGr, int laGr, int brMin, int laMin, double brSec, double laSec, GEOKO *v, GEOKO *n) :DVKE(v, n){
+
+
+GEOKO::GEOKO() :brGr(0), brMin(0), brSec(0), laGr(0), laMin(0), laSec(0), br(0), la(0) {
+}
+GEOKO::GEOKO(int brGr, int laGr, int brMin, int laMin, double brSec, double laSec,double br,double la) {
 	this->brGr = brGr;
-	this->laGr = laGr;
 	this->brMin = brMin;
-	this->laMin = laMin;
 	this->brSec = brSec;
+	this->laGr = laGr;
+	this->laMin = laMin;
 	this->laSec = laSec;
+	this->br = br;
+	this->la = la;
 }
 
-// Konstruktor, ruft Initialisierungskonstruktor mit nullpointern auf
-GEOKO::GEOKO(int brGr, int laGr, int brMin, int laMin, double brSec, double laSec) : GEOKO(brGr, laGr, brMin, laMin, brSec, laSec, nullptr, nullptr){
+GEOKO::~GEOKO()
+{
 }
 
-
-// Getter
-int GEOKO::getBrGr() const{
-	return this->brGr;
+int GEOKO::getBrGr() const
+{
+	return brGr;
 }
 
-int GEOKO::getLaGr() const{
-	return this->laGr;
+int GEOKO::getLaGr()const
+{
+	return laGr;
 }
 
-int GEOKO::getBrMin() const{
-	return this->brMin;
+int GEOKO::getBrMin()const
+{
+	return brMin;
 }
 
-int GEOKO::getLaMin() const{
-	return this->laMin;
+int GEOKO::getLaMin()const
+{
+	return laMin;
 }
 
-double GEOKO::getBrSec() const{
-	return this->brSec;
+double GEOKO::getBrSec()const
+{
+	return brSec;
 }
 
-double GEOKO::getLaSec() const{
-	return this->laSec;
+double GEOKO::getLaSec()const
+{
+	return laSec;
 }
 
-
-// Überladen von >> für den Abstand
-double GEOKO::operator>>(const GEOKO &ko) const{
-	double brT, laT, brKo, laKo;
-
-	timeToDez(this, &brT, &laT);
-	timeToDez(&ko, &brKo, &laKo);
-
-	return sqrt(pow(brT - brKo, 2) + pow(laT - laKo, 2));
+double GEOKO::getBr() const
+{
+	return br;
 }
 
-
-// Destruktor
-GEOKO:: ~GEOKO(){
+double GEOKO::getLa()const
+{
+	return la;
+}
+/*
+double GEOKO::operator-(const GEOKO &mid) const
+{ 
+	double abstand;
+		abstand = sqrt(pow(br - mid.getBr(), 2) + pow(la - mid->getLa(), 2));
+	return abstand;
+}
+*/
+void GEOKO::setBrGr(int a)
+{
+	this->brGr = a;
 }
 
-
-// Rechnet Dezimalkooridinate in Zeitkooridinate um
-// @param Breitengrad, Längengrad
-// @return zeitkooridinate
-GEOKO * dezToTime(double br, double la){
-	int brGr, laGr, brMin, laMin;
-	double	brSec, laSec;
-
-	brGr = (int) br;
-	laGr = (int) la;
-
-	br = (br - brGr) * 60;
-	la = (la - laGr) * 60;
-
-	brMin = (int) br;
-	laMin = (int) la;
-
-	brSec = (br - brMin) * 60;
-	laSec = (la - laMin) * 60;
-
-	return new GEOKO(brGr, laGr, brMin, laMin, brSec, laSec);
+double GEOKO::operator>>(const GEOKO& Vergl) const {
+	double tBr, VBr, tLa, VLa;
+	GEOKOtoDouble(this, &tBr, &tLa);
+	GEOKOtoDouble(&Vergl, &VBr, &VLa);
+	return sqrt(pow(tBr - VBr, 2) + pow(tLa - VLa, 2));
 }
-
-// Rechnet Zeitkooridinate in Dezimalkooridinate um
-// @param Zeitkooridinate, variable für DezBreitengrad, variable für DezLängengrad
-void timeToDez(const GEOKO * ko, double * br, double * la){
-	*br = (((ko->getBrSec() / 60) + ko->getBrMin()) / 60) + ko->getBrGr();
-	*la = (((ko->getLaSec() / 60) + ko->getLaMin()) / 60) + ko->getLaGr();
+void GEOKO::GEOKOtoDouble(const GEOKO * G, double *Br, double *La) const {
+	*Br = (double)(G->getBrGr() * 3600) + (double)(G->getBrMin() * 60) + (G->getBrSec());
+	*La = (double)(G->getLaGr() * 3600) + (double)(G->getLaMin() * 60) + (G->getLaSec());
 }

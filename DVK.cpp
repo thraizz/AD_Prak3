@@ -1,216 +1,177 @@
-﻿#include "DVK.h"
-#include "malloc.h"
-#include "iostream"
-#include "fstream"
-#include "Util.h"
+#include "DVK.h"
 
-// Initialisierungskonstruktor
-DVK::DVK(long anzahl, string nameDatei){
-	this->anz = anzahl;
+DVK::DVK()
+{
+}
 
-	// Aktuelles gelesenes Element
-	GEOKO *tmp;
-	// Einzulesende Datei
-	ifstream datei(nameDatei);
+DVK::DVK(GEOKO *geo){
+	this->data = geo;
+}
 
-	// Einlesen der Datenpaare
-	for(int i = 0; i < anzahl; i++){
+DVK::DVK( int MAX, string path ){
 
-		//eingelesener Breiten- und Längengrad
-		double br, la;
+	this->ANZ = 0;
+	this->MAX = MAX;
 
-		br = readDoubleFile(&datei, ',');
-		la = readDoubleFile(&datei, ';');
+	this->current = this;
 
-		tmp = dezToTime(br, la);
+	string line;
+	GEOKO* temp;
+	double xb,xl;
+	double br_ges=0, la_ges=0;
 
-		// Eintragen in Array
-		this->index[i] = tmp;
+	
+	this->Index = new GEOKO[this->MAX]; 
+		
+	ifstream file(path);
 
-		// vorderen Anker setzen
-		if(i == 0){
-			this->anker_V = tmp;
+	double br, la, brSec, laSec;
+
+	int brGr, brMin, laGr, laMin;
+
+	cout << "ANZ: " << current->ANZ << "MAX: " << current->MAX << endl;
+
+	while (current->ANZ<current->MAX){
+
+		cout << "ANZ: " << current->ANZ << "MAX: " << current->MAX << endl;
+		getline(file, line, ',');
+		line.erase(remove_if(line.begin(), line.end(), ::isspace), line.end());
+		cout << line << endl;
+		br = stod(line);
+
+		getline(file, line, ';');	
+		line.erase(remove_if(line.begin(), line.end(), ::isspace), line.end());			
+		la = stod(line);
+
+		brGr = (int)(br/3600);
+		laGr = (int)(la/3600);
+
+		xb = (br/3600 - brGr) * 60;
+		xl = (la/3600 - laGr) * 60;
+
+		brMin = (int)xb;
+		laMin = (int)xl;
+		
+		brSec = (double)((xb - brMin) * 60);
+		laSec = (double)((xl  - laMin) * 60);
+
+		temp = new GEOKO(brGr, laGr, brMin, laMin, brSec, laSec,br,la);
+
+		br_ges += br;
+		la_ges += la;
+
+
+
+		if (current->ANZ == 0){
+			current->data = temp;
+			current->Index[current->ANZ] = *temp;
+		} else {
+
+		current->anhaenge(temp);
+
+		if (current->N == nullptr)
+			cout << "null" << endl;
+
+		cout << current->ANZ << endl;
+
+		current->Index[current->ANZ] = *temp;
+
+		current->ANZ++;
+
 		}
-		// Eintrage als Nachvolger im vorgänger und vorgänger eintragen
-		if(i > 0 && i < anzahl){
-			this->index[i - 1]->setN(tmp);
-			tmp->setV(this->index[i - 1]);
-		}
-		// hinteren Anker setzen
-		if(i == anzahl - 1){
-			this->anker_R = tmp;
-		}
-	}
-	datei.close();
+	
 
-	// middle neu berechnen
-	middleNew();
-}
-
-
-// Getter
-GEOKO * DVK::getMiddle() const{
-	return this->middle;
-}
-
-GEOKO ** DVK::getIndex(){
-	return this->index;
-}
-
-int DVK::getAnz() const{
-	return this->anz;
-}
-
-
-// Berechnet den Mittelwert neu
-void DVK::middleNew(){
-	// alten Mittelwert löschen, falls vorhanden
-	if(this->middle != nullptr){
-		delete this->middle;
-	}
-
-	// Breiten- und Längengrad durchschnitt, wert des Aktuellen paares
-	double brAvg = 0.0, laAvg = 0.0, brTmp, laTmp;
-
-	// Alle werte zusammen rechnen
-	for(int i = 0; i < this->anz; i++){
-		timeToDez(index[i], &brTmp, &laTmp);
-		brAvg += brTmp;
-		laAvg += laTmp;
-	}
-
-	// Durch anzahl Elemente teilen
-	brAvg /= this->anz;
-	laAvg /= this->anz;
-
-	// middle neu setzen
-	this->middle = dezToTime(brAvg, laAvg);
-}
-
-// Implementierung des Bubble-Sort-Algorythmus
-void DVK::bubbleSort(GEOKO *arrCpy[]){
-	// Anzahl Durchlaeufe
-	for(int run = 1; run < this->anz; run++){
-		// Durchlaufen
-		for(int i = 0; i < this->anz - run; i++){
-			// Element groesser als nachfolger ?
-			if(((*arrCpy[i] >> *this->middle) - (*arrCpy[i + 1] >> *this->middle)) > 0.0001){
-				// Vertauschen
-				swap(i, i + 1, arrCpy);
-			}
-		}
-	}
-}
-
-// Implementierung des Insertion-Sort-Algorythmus
-void DVK::insertionSort(GEOKO *arrCpy[]){
-	for(int i = 1; i < this->anz; i++){
-		GEOKO *sort = arrCpy[i];
-		int j = i;
-		// Element kleiner als Vorgänger ?
-		while(j > 0 && (((*arrCpy[j - 1] >> *this->middle) - (*arrCpy[j] >> *this->middle)) > 0.0001)){
-			arrCpy[j] = arrCpy[j - 1];
-			j--;
-			arrCpy[j] = sort;
-		}
+		
 
 	}
+
+/*
+	br_ges /= this->MAX;
+	la_ges /= this->MAX;
+	brGr = (int)(br_ges / 3600);
+	laGr = (int)(la_ges / 3600);
+	xb = (br_ges / 3600 - brGr) * 60;
+	xl = (la_ges / 3600 - laGr) * 60;
+	brMin = (int)xb;
+	laMin = (int)xl;
+
+	brSec = (double)((xb - brMin) * 60);
+	laSec = (double)((xl - laMin) * 60);
+
+	this->Mittelwert = new GEOKO(brGr, laGr, brMin, laMin, brSec, laSec, br, la);
+
+	file.close();
+*/
+
 }
 
-// Implementierung des Quick-Sort-Algorythmus
-void DVK::quicksort(int links, int rechts, GEOKO *arr[]){
-	int pivot = links;
-	for(int i = links + 1; i <= rechts; i++){
-		if(((*arr[pivot] >> *this->middle) - (*arr[i] >> *this->middle)) > 0.0001){
-			change(pivot, i, arr);
-			pivot++;
-		}
-	}
-	// Like Liste
-	if(links < pivot - 1){
-		quicksort(links, pivot - 1, arr);
-	}
-	// Rechte Liste
-	if(rechts > pivot + 1){
-		quicksort(pivot + 1, rechts, arr);
-	}
+
+
+DVK::~DVK()
+{
 }
 
-// Verschiebt das rechte Element hinter das linke
-void DVK::change(int links, int rechts, GEOKO *arr[]){
-	while(links < rechts){
-		swap(rechts, rechts - 1, arr);
-		rechts--;
+
+int DVK::getAnz()
+{
+	return this->MAX;
+}
+
+void DVK::anhaenge(GEOKO* geo){
+
+	if (this->ANZ == this->MAX)
+		return;
+
+	this->ANZ++;
+
+
+	while (current->N != nullptr)
+		current = current->N;
+
+	current->N = new DVK(geo);
+	current->N->V = current;
+	current = current->N;
+
+}
+
+GEOKO* DVK::getMiddle()
+{
+	return Mittelwert;
+}
+
+GEOKO** DVK::indexCopy()
+{
+	GEOKO** index_neu = new GEOKO*[this->MAX];
+
+	for (int i = 0; i < this->MAX; i++) {
+		*index_neu[i] = Index[i];
 	}
+	return index_neu;
 }
 
-// Implementierung des Selection-Sort-Algorythmus
-void DVK::selectionSort(GEOKO *arrCpy[]){
-
-	for(int x = 0; x < this->anz - 1; x++){
-		int kl = x;
-		for(int i = x + 1; i < this->anz; i++){
-			if(((*arrCpy[kl] >> *this->middle) - (*arrCpy[i] >> *this->middle)) > 0.0001){
-				kl = i;
-			}
-		}
-		swap(x, kl, arrCpy);
-	}
-}
-
-// Implementierung des Merge-Sort-Algorythmus
-void DVK::mergeSort(int left, int right, GEOKO *arr[]){
-	int middle = (int) ceil((left + right) / 2.0);
-
-	if((middle - left) > 1)
-		mergeSort(left, middle, arr);
-	if(right - (middle) > 1)
-		mergeSort(middle, right, arr);
-	merge(left, middle, right, arr);
-}
-
-// Fürht "Beide" Listen zusammen
-void DVK::merge(int left, int middle, int right, GEOKO *arr[]){
-	int leftNum = middle - left, rightNum = right - middle;
-
-	while(leftNum != 0 && rightNum != 0){
-		if((*arr[left] >> *this->middle) - (*arr[middle] >> *this->middle) > 0.0){
-			change(left, middle, arr);
-			left++;
-			middle++;
-			rightNum--;
-		} else{
-			left++;
-			leftNum--;
-		}
-	}
-}
-
-// Implementierung des Heap-Sort-Algorythmus
 void DVK::heapSort(GEOKO *arr[]){
-	int anz = this->anz - 1;
+	int anz = this->MAX - 1;
 	build_maxheap(arr, anz);
 	for(int i = anz; i > 0; i--){
-		// Größtes Element raus nehmen, letztes einfügen und einsortieren
 		swap(i, 0, arr);
 		heapify_max(arr, 0, i - 1);
 	}
 }
 
-// Einsortieren des Ellements i in seinem Zweig
+
 void DVK::heapify_max(GEOKO *arr[], int nodeP, int anz){
-	// gültige Anzahl?
+
 	if(anz <= 0) return;
 	int child = 2 * nodeP, node = nodeP;
 
 	while(child <= anz){
 		// 2 Kinder und 2. Kind größer als 1.?
-		if(child < anz && (*arr[child + 1] >> *this->middle) > (*arr[child] >> *this->middle)){
+		if(child < anz && (*arr[child + 1] >> *this->Mittelwert) > (*arr[child] >> *this->Mittelwert)){
 			// auf 2. setzen
 			child++;
 		}
 		// kind größer als Knoten?
-		if(((*arr[node] >> *this->middle) - (*arr[child] >> *this->middle)) < 0.0001){
+		if(((*arr[node] >> *this->Mittelwert) - (*arr[child] >> *this->Mittelwert)) < 0.0001){
 			swap(node, child, arr);
 			node = child;
 			child = 2 * child;
@@ -227,8 +188,55 @@ void DVK::build_maxheap(GEOKO *arr[], int anz){
 }
 
 
-// Destrukort
-DVK::~DVK(){
-	delete middle;
-	delete[] * index;
+double DVK::distance(GEOKO* geoko)
+{
+	double distance = sqrt(pow(geoko->getBr() -this->Mittelwert->getBr(), 2) + pow(geoko->getLa()-this->Mittelwert->getLa(), 2));
+	return distance;
+}
+
+void DVK::inDateiSchreiben(string dat,GEOKO* index_neu[])
+{
+	
+	ofstream datei(dat);
+	for (int i = 0; i < this->MAX; i++) {
+		// Rausschreiben mit 2 Nachkommastellen
+		datei << std::fixed << setprecision(2) << index_neu[i]->getBr() << ": " << index_neu[i]->getLa() << ";" << " Abstand zum Mittelpunkt: " << (*Mittelwert>>*index_neu[i])<< endl;
+	}
+	datei.close();
+}
+
+GEOKO * DVK::getMiddle() const
+{
+	return this->Mittelwert;
+}
+
+void DVK::SelectionSort(GEOKO *arrCpy[]){
+
+	for(int x = 0; x < this->MAX - 1; x++){
+		int kl = x;
+		for(int i = x + 1; i < this->MAX; i++){
+			if(((*arrCpy[kl] >> *this->Mittelwert) - (*arrCpy[i] >> *this->Mittelwert)) > 0.0001){
+				kl = i;
+			}
+		}
+		swap(x, kl, arrCpy);
+	}
+}
+
+void DVK::swap(int i, int zeiger, GEOKO *Arr[]) {
+	GEOKO *tmp = Arr[i];
+	Arr[i] = Arr[zeiger];
+	Arr[zeiger] = tmp;
+}
+
+void DVK::writeListe(GEOKO * arr[], int anz, const  string name) {
+	double br, la;
+	ofstream datei(name);
+	for (int i = 0; i < anz; i++) {
+		br= (((arr[i]->getBrSec() / 60) + arr[i]->getBrMin()) / 60) + arr[i]->getBrGr();
+		la= (((arr[i]->getLaSec() / 60) + arr[i]->getLaMin()) / 60) + arr[i]->getLaGr();
+		// Rausschreiben mit 2 Nachkommastellen
+		datei << std::fixed << setprecision(2) << "   " << br << ",   " << la << ";" << endl;
+	}
+	datei.close();
 }

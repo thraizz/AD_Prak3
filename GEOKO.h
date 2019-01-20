@@ -1,36 +1,34 @@
 #pragma once
 #include "DVKE.h"
-class GEOKO :
-	public DVKE{
+#include <math.h>
+class GEOKO{
 private:
-	// Werte der Kooridinaten in Zeit
-	int brGr, laGr, brMin, laMin;
-	double brSec, laSec;
+	int brGr;
+	int laGr;
+	int brMin;
+	double brSec;
+	int laMin;
+	double laSec;
+	double br, la;
 public:
-	// Initialisierungskonstruktor
-	GEOKO(int, int, int, int, double, double, GEOKO*, GEOKO*);
-	// Konstruktor, ruft Initialisierungskonstruktor mit nullpointern auf
-	GEOKO(int, int, int, int, double, double);
+	GEOKO();
+	GEOKO(int brGr, int laGr, int brMin, int laMin, double brSec, double laSec,double br,double la);
+	~GEOKO();
 
-	// Getter
-	int getBrGr() const;
-	int getLaGr() const;
-	int getBrMin() const;
-	int getLaMin() const;
-	double getBrSec() const;
-	double getLaSec() const;
+	int getBrGr()const;
+	int getLaGr()const;
+	int getBrMin()const;
+	int getLaMin()const;
+	double getBrSec()const;
+	double getLaSec()const;
+	double getBr()const;
+	double getLa()const;
+	//double operator-(const GEOKO &mid) const ;
+	void setBrGr(int a);
 
-	// Überladen von >> für den Abstand
-	double operator>>(const GEOKO&) const;
+	double operator>>(const GEOKO & Vergl) const;
 
-	// Destruktor
-	virtual ~GEOKO();
+	void GEOKOtoDouble(const GEOKO * G, double * Br, double * La) const;
+	
 };
 
-// Rechnet Dezimalkooridinate in Zeitkooridinate um
-// @param Breitengrad, Längengrad
-// @return zeitkooridinate
-GEOKO * dezToTime(double, double);
-// Rechnet Zeitkooridinate in Dezimalkooridinate um
-// @param Zeitkooridinate, variable für DezBreitengrad, variable für DezLängengrad
-void timeToDez(const GEOKO *, double *, double *);

@@ -1,64 +1,57 @@
 #pragma once
-#define MAXELE 1000000
-#define datei1 "Daten.csv"
-#define datei2 "Daten1.csv"
-
+#include "DVKE.h"
 #include "GEOKO.h"
-#include "string"
+
+#include <fstream>
+#include <string>
+#include <sstream>
+#include <iostream>
+#include <algorithm>
+#include <iomanip>
 
 using namespace std;
 
-class DVK{
+class DVK: public DVKE{
+
 private:
-	// Anker der Liste, Mittelwert aller einträge, Liste mit allen Elementen
-	GEOKO * anker_V, *anker_R, *middle, *index[MAXELE];
-	// Anzahl der Elemente in der Liste
-	int anz;
+
+	DVK* V, *N;
+	GEOKO* Mittelwert;
+	GEOKO* Index = NULL;
+	int ANZ, MAX;
+
 public:
-	// Initialisierungskonstruktor
-	DVK(long, string);
 
+	DVK(int MAX,string path);
+	DVK(GEOKO *geo);
+	DVK();
+	~DVK();
 
-	// Getter
-	GEOKO * getMiddle() const;
+	int getAnz();
+	GEOKO* getMiddle();
+	GEOKO** indexCopy();
+	DVK *current;
 
-	GEOKO ** getIndex();
+	void heapsort(int links, int rechts, GEOKO* index_neu[]);
 
-	int getAnz() const;
+	double distance(GEOKO* geoko);
 
+	void anhaenge(GEOKO* geo);
 
-	// Berechnet den Mittelwert neu
-	void middleNew();
+	void inDateiSchreiben(string dat,GEOKO* index_neu[]);
 
-	// Implementierung des Bubble-Sort-Algorythmus
-	void bubbleSort(GEOKO *[]);
+	GEOKO* getMiddle()const;
 
-	// Implementierung des Insertion-Sort-Algorythmus
-	void insertionSort(GEOKO *[]);
+	void SelectionSort(GEOKO* index_neu[]);
 
-	// Implementierung des Quick-Sort-Algorythmus
-	void quicksort(int, int, GEOKO *[]);
-
-	// Verschiebt das rechte Element hinter das linke
-	void change(int, int, GEOKO *[]);
-
-	// Implementierung des Selection-Sort-Algorythmus
-	void selectionSort(GEOKO *[]);
-
-	// Implementierung des Merge-Sort-Algorythmus
-	void mergeSort(int, int, GEOKO *[]);
-
-	// Fürht "Beide" Listen zusammen
-	void merge(int, int, int, GEOKO *[]);
+	void swap(int i, int zeiger, GEOKO * Arr[]);
+	
+	void writeListe(GEOKO * arr[], int anz, const  string name);
 
 	void heapSort(GEOKO *[]);
 
 	void heapify_max(GEOKO *[], int, int);
 
-	void build_maxheap(GEOKO *[], int);
-
-
-	// Destrukort
-	~DVK();
+    void build_maxheap(GEOKO *[], int);
 };
 

@@ -1,8 +1,6 @@
 #include "DVK.h"
 
-DVK::DVK()
-{
-}
+DVK::DVK(){}
 
 DVK::DVK(GEOKO *geo){
 	this->data = geo;
@@ -10,8 +8,9 @@ DVK::DVK(GEOKO *geo){
 
 DVK::DVK( int MAX, string path ){
 
-	this->ANZ = 0;
-	this->MAX = MAX;
+
+	this->ANZ = new int(0);
+	this->MAX = &MAX;
 
 	this->current = this;
 
@@ -20,8 +19,7 @@ DVK::DVK( int MAX, string path ){
 	double xb,xl;
 	double br_ges=0, la_ges=0;
 
-	
-	this->Index = new GEOKO[this->MAX]; 
+	this->Index = new GEOKO[*this->MAX]; 
 		
 	ifstream file(path);
 
@@ -29,10 +27,10 @@ DVK::DVK( int MAX, string path ){
 
 	int brGr, brMin, laGr, laMin;
 
-	cout << "ANZ: " << current->ANZ << " MAX: " << current->MAX << endl;
 
-	while (current->ANZ<current->MAX){
-		cout << "current ANZ: " << current->ANZ << " current MAX: " << current->MAX << endl;
+	while (*current->ANZ<*current->MAX){
+
+		cout << "ANZ: " << *current->ANZ << "MAX: " << *current->MAX << endl;
 		getline(file, line, ',');
 		line.erase(remove_if(line.begin(), line.end(), ::isspace), line.end());
 		cout << line << endl;
@@ -53,37 +51,44 @@ DVK::DVK( int MAX, string path ){
 		
 		brSec = (double)((xb - brMin) * 60);
 		laSec = (double)((xl  - laMin) * 60);
-		printf("brGr: %d laGr: %d brMin: %d laMin: %d brSec: %f laSec: %f, br: %f, la: %f\n", brGr, laGr, brMin, laMin, brSec, laSec,br,la);
+
 		temp = new GEOKO(brGr, laGr, brMin, laMin, brSec, laSec,br,la);
 
 		br_ges += br;
 		la_ges += la;
 
-
-
-		if (current->ANZ == 0){
-			current->data = temp;
-			current->Index[current->ANZ] = *temp;
-
-		}
 		
-		else {
-			current->anhaenge(temp);
-			if (current->N == nullptr){
-				cout << "null" << endl;
-			}
-			else {
-			cout << current->ANZ << endl;
-			current->Index[current->ANZ] = *temp;
-			}
-		}
+		if (*current->ANZ == 0){
+			current->data = temp;
+			current->Index[*current->ANZ] = *temp;
+			
+			current->N->ANZ = current->ANZ;
+			cout << *current->ANZ << endl;
+	        current->N->MAX = current->MAX;
+			
+			current->N->current = current;
+			current->N->V = current;
+			*current->ANZ += 1;
+			current = current->N;
+		} else {
 
-		current->ANZ++;
+		cout << "ANy: " << endl;
+		current->anhaenge(temp);
+
+		current->Index[*current->ANZ] = *temp;
+
+		cout << "ANZ: " << endl;
+
+		}
+	
+
+		
+
 	}
 
 /*
-	br_ges /= this->MAX;
-	la_ges /= this->MAX;
+	br_ges /= *this->MAX;
+	la_ges /= *this->MAX;
 	brGr = (int)(br_ges / 3600);
 	laGr = (int)(la_ges / 3600);
 	xb = (br_ges / 3600 - brGr) * 60;
@@ -110,23 +115,26 @@ DVK::~DVK()
 
 int DVK::getAnz()
 {
-	return this->MAX;
+	return *this->MAX;
 }
 
 void DVK::anhaenge(GEOKO* geo){
 
-	if (this->ANZ == this->MAX)
+	if (current->ANZ == current->MAX)
 		return;
-
-	this->ANZ++;
 
 
 	while (current->N != nullptr)
 		current = current->N;
 
 	current->N = new DVK(geo);
+	current->N->ANZ = current->ANZ;
+	current->N->MAX = current->MAX;
+	current->N->current = current;
 	current->N->V = current;
 	current = current->N;
+	*current->ANZ += 1;
+
 
 }
 
@@ -137,16 +145,16 @@ GEOKO* DVK::getMiddle()
 
 GEOKO** DVK::indexCopy()
 {
-	GEOKO** index_neu = new GEOKO*[this->MAX];
+	GEOKO** index_neu = new GEOKO*[*this->MAX];
 
-	for (int i = 0; i < this->MAX; i++) {
+	for (int i = 0; i < *this->MAX; i++) {
 		*index_neu[i] = Index[i];
 	}
 	return index_neu;
 }
 
 void DVK::heapSort(GEOKO *arr[]){
-	int anz = this->MAX - 1;
+	int anz = *this->MAX - 1;
 	build_maxheap(arr, anz);
 	for(int i = anz; i > 0; i--){
 		swap(i, 0, arr);
@@ -194,7 +202,7 @@ void DVK::inDateiSchreiben(string dat,GEOKO* index_neu[])
 {
 	
 	ofstream datei(dat);
-	for (int i = 0; i < this->MAX; i++) {
+	for (int i = 0; i < *this->MAX; i++) {
 		// Rausschreiben mit 2 Nachkommastellen
 		datei << std::fixed << setprecision(2) << index_neu[i]->getBr() << ": " << index_neu[i]->getLa() << ";" << " Abstand zum Mittelpunkt: " << (*Mittelwert>>*index_neu[i])<< endl;
 	}
@@ -208,9 +216,9 @@ GEOKO * DVK::getMiddle() const
 
 void DVK::SelectionSort(GEOKO *arrCpy[]){
 
-	for(int x = 0; x < this->MAX - 1; x++){
+	for(int x = 0; x < *this->MAX - 1; x++){
 		int kl = x;
-		for(int i = x + 1; i < this->MAX; i++){
+		for(int i = x + 1; i < *this->MAX; i++){
 			if(((*arrCpy[kl] >> *this->Mittelwert) - (*arrCpy[i] >> *this->Mittelwert)) > 0.0001){
 				kl = i;
 			}

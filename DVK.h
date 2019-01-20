@@ -18,7 +18,7 @@ private:
 	DVK* V, *N;
 	GEOKO* Mittelwert;
 	GEOKO* Index = NULL;
-	int ANZ, MAX;
+	int *ANZ = 0, *MAX;
 
 public:
 

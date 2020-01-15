@@ -1,24 +1,34 @@
 #include "DVKE.h"
 
-DVKE::DVKE() :V(nullptr), N(nullptr)
-{
+// Initialisierungskonstruktor
+DVKE::DVKE(DVKE * v, DVKE * n){
+	this->n = n;
+	this->v = v;
+}
+
+// Konstruktor, ruft Initialisierungskonstruktor mit nullpointern auf
+DVKE::DVKE() :DVKE(nullptr, nullptr){
 }
 
 
-DVKE::~DVKE()
-{
+// Getter und Setter
+DVKE * DVKE::getV() const{
+	return this->v;
 }
 
-DVKE* DVKE::getN() {
-	return N;
+void DVKE::setV(DVKE *v){
+	this->v = v;
 }
 
-DVKE* DVKE::getV() {
-	return V;
+DVKE * DVKE::getN() const{
+	return this->n;
 }
-void DVKE::setN(DVKE* obj){
-	this->N = obj;
+
+void DVKE::setN(DVKE *n){
+	this->n = n;
 }
-void DVKE::setV(DVKE* obj) {
-	this->V = obj;
+
+
+// Destruktor
+DVKE::~DVKE(){
 }

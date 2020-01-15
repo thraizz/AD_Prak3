@@ -1,18 +1,21 @@
-#pragma once
-class DVKE
-{
-
-protected:
-	DVKE* V;
-	DVKE* N;
-	void* data;
-
+class DVKE{
+private:
+	// vorgaenger
+	DVKE *v;
+	// nachvolger
+	DVKE *n;
 public:
+	// Initialisierungskonstruktor
+	DVKE(DVKE*, DVKE*);
+	// Konstruktor, ruft Initialisierungskonstruktor mit nullpointern auf
 	DVKE();
-	~DVKE();
-	DVKE* getV();
-	DVKE* getN();
-	void setV(DVKE* obj);
-	void setN(DVKE* obj);
-};
 
+	// Getter und Setter
+	DVKE* getV() const;
+	void setV(DVKE*);
+	DVKE* getN() const;
+	void setN(DVKE*);
+
+	// Destruktor
+	~DVKE();
+};

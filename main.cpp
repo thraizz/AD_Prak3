@@ -1,149 +1,160 @@
-
-#include <string>
-#include <iostream>
-#include <stdio.h>
-#include <stdlib.h>
-#include <algorithm>
-#include <iomanip>
-#include <string.h>
-#include <math.h>
-#include <time.h>
-
+#pragma once
+#include "iostream"
 #include "DVK.h"
+#include "string"
+#include "Util.h"
+#include "time.h"
 
 using namespace std;
 
-long diff(timespec start, timespec end){
 
-    timespec temp;
-    if ((end.tv_nsec-start.tv_nsec)<0) {
-        temp.tv_sec = end.tv_sec-start.tv_sec-1;
-        temp.tv_nsec = 1000000000+end.tv_nsec-start.tv_nsec;
-    } else {
-        temp.tv_sec = end.tv_sec-start.tv_sec;
-        temp.tv_nsec = end.tv_nsec-start.tv_nsec;
-    }
-    return temp.tv_nsec /1000 + temp.tv_sec*1000000;
+void beginMessung(long long *g_LastCount, long long *g_FirstCount, long long *g_Frequency, double *nulltime){
+	// Variablen
+	long long g_FirstNullCount, g_LastNullCount;
+
+	// Frequenz holen
+	if(!QueryPerformanceFrequency((long int*) g_Frequency))
+		printf("Performance Counter nicht vorhanden");
+
+	double resolution = 1000000 / ((double) *g_Frequency);
+
+	printf("Frequenz des Counters:  %lld kHz\n", *g_Frequency / 1000);  //lld -> long long darstellung
+	printf("Dadurch maximale Aufloesung: %4.5f us\n", resolution);
+
+	// null-messung
+	QueryPerformanceCounter((long int*) &g_FirstNullCount);
+	QueryPerformanceCounter((long int*) &g_LastNullCount);
+	*nulltime = (((double) (g_LastNullCount - g_FirstNullCount)) / ((double) *g_Frequency));
+
+	printf("Null-Zeit: %4.5f us\n", *nulltime * 1000000);
+
+	// beginn messung
+	QueryPerformanceCounter((long int*) g_FirstCount);
 }
 
-int main() {
-	
-	int choice;
-	int anz;
-	int datei=0;
-	DVK* dvk=nullptr;
+void endeMessung(long long g_LastCount, long long g_FirstCount, long long g_Frequency, double nulltime){
 
-	string file;
-	
+	// 2. Messung
+	QueryPerformanceCounter((long int*) &g_LastCount);
+
+	double dTimeDiff = (((double) (g_LastCount - g_FirstCount)) / ((double) g_Frequency));
+
+	// Von der gemessenen Zeit die "Null-Zeit" abziehen, um genauer zu werden
+	double time = (dTimeDiff - nulltime) * 1000000; //mikro-sekunden
+	printf("Zeit: %4.5f us\n", time);
+}
+
+void schreiben(GEOKO *arrCpy[], int anz, string nameDat){
+// Schreiben in Datei
+	if(nameDat == datei1){
+		writeListe(arrCpy, anz, "Daten_S.csv");
+	}
+	if(nameDat == datei2){
+		writeListe(arrCpy, anz, "Daten1_S.csv");
+	}
+}
+
+int main(){
+	int choise = 0;
+	DVK *liste = nullptr;
+	string nameDat;
+
 	do{
-		cout << "Menue:" << endl;
-		cout << "'1' Verkettete Liste erzeugen." << endl;
-		cout << "'2' Quicksort." << endl;
-		cout << "'3' Selection Sort." << endl;
-		cout << "'4' Programm beenden." << endl;
-		cin >> choice;
-		switch (choice)
-		{
-		case 1:
-			if (datei !=0) {
-				datei = 0;
-			}
-			cout << "Geben Sie ein wieviele Objekte erstellt werden sollen (weniger als 1000000)" << endl;
-			cin >> anz;
-			if (anz > 1000000) {
-				cout << "Zu grosse Zahl." << endl;
-				break;
-			}
+		cout << "1 Verkettete Liste anlegen" << endl
+			<< "2 Heap Sort" << endl
+			<< "3 Selection Sort" << endl
+			<< "4 Daten der Liste schreiben" << endl
+			<< "5 Ende" << endl;
 
-				while ((datei!=2)&&(datei!=1))
-				{
-					cout << "Um Datei zu oeffnen druecken Sie '1' oder fuer Datei1 '2'" << endl;
-					cin >> datei;
-					switch (datei)
-					{
+		choise = readInt();
+
+		switch(choise){
+			case 5:
+				cout << "Auf wiedersehen" << endl;
+				break;
+
+			case 1:
+			{
+				if(liste != nullptr){
+					delete liste;
+				}
+				int anz;
+
+				do{
+					cout << "1 Daten.csv" << endl
+						<< "2 Daten1.csv" << endl;
+
+					choise = readInt();
+				} while(!(choise == 1 || choise == 2));
+
+				switch(choise){
 					case 1:
-						file = "Daten.csv";
+						nameDat = datei1;
 						break;
 					case 2:
-						file = "Daten1.csv";
+						nameDat = datei2;
 						break;
-					default:cout << "Ungueltige Eingabe";
-						break;
-					}
-				} 
-				dvk = new DVK(anz, file);
-				printf("MittelKoordinate betraegt: %i:%i:%f  %i:%i:%f\n ", dvk->getMiddle()->getBrGr(), dvk->getMiddle()->getBrMin(), dvk->getMiddle()->getBrSec(), dvk->getMiddle()->getLaGr(), dvk->getMiddle()->getLaMin(), dvk->getMiddle()->getLaSec());
-				cout<< std::fixed << setprecision(2) << dvk->getMiddle()->getBr() << ":"<< dvk->getMiddle()->getLa()<< endl;
-				dvk->indexCopy();
-				
-				break;
-		case 2:{ 
-			GEOKO** copy = dvk->indexCopy();
-			
-			timespec start, end;
+				}
 
-			clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &start);
-			dvk->heapSort(copy);
-			clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &end);
+				cout << "Anzahl der Kooridinatenpaare ? (max " << MAXELE << "):" << endl;
+				do{
+					anz = readInt();
+				} while(anz > MAXELE || anz < 1);
 
-			long sd = diff(start, end);
+				liste = new DVK(anz, nameDat);
 
-			cout << "Dauer der Sortierung: " << sd << "Mikrosekunden" << endl;
+				double br, la;
 
-			
-
-			switch (datei)
-			{
-			case 1: dvk->inDateiSchreiben("Daten_S.csv",copy);
-				break;
-			case 2:
-				dvk->inDateiSchreiben("Daten1_S.csv",copy);
-				break;
-			default:
-				break;
-			}}
-			break;
-
-		case 3:{
-			GEOKO** copy = dvk->indexCopy();
-			
-			timespec start, end;
-
-			clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &start);
-			dvk->SelectionSort(copy);
-			clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &end);
-
-			long sd = diff(start, end);
-
-			cout << "Dauer der Sortierung: " << sd << "Mikrosekunden" << endl;
-			
-
-			switch (datei)
-			{
-				case 1: dvk->inDateiSchreiben("Daten_S.csv", copy);
-					break;
-				case 2:
-					dvk->inDateiSchreiben("Daten1_S.csv", copy);
-					break;
-				default:
-					break;
+				timeToDez(liste->getMiddle(), &br, &la);
+				cout << "Breitengrad: " << br << ", Laengengrad: " << la << endl;
 			}
-		}
-		break;
-		case 4:
 			break;
-		default:
-			cout << "Ungueltige Eingabe";
+
+
+
+			case 3:
+			{
+				long long g_Frequency = 0, g_FirstCount = 0, g_LastCount = 0;
+				double nulltime;
+				GEOKO **arrCpy = cpyArr(liste->getIndex(), liste->getAnz());
+
+				beginMessung(&g_LastCount, &g_FirstCount, &g_Frequency, &nulltime);
+
+				// ##################
+				// # Selection Sort #
+				// ##################
+				liste->selectionSort(arrCpy);
+
+				endeMessung(g_LastCount, g_FirstCount, g_Frequency, nulltime);
+
+				// Schreiben in Datei
+				schreiben(arrCpy, liste->getAnz(), nameDat);
+			}
 			break;
+
+			case 2:
+			{
+				long long g_Frequency = 0, g_FirstCount = 0, g_LastCount = 0;
+				double nulltime;
+
+				GEOKO **arrCpy = cpyArr(liste->getIndex(), liste->getAnz());
+
+				beginMessung(&g_LastCount, &g_FirstCount, &g_Frequency, &nulltime);
+				liste->heapSort(arrCpy);
+
+				endeMessung(g_LastCount, g_FirstCount, g_Frequency, nulltime);
+
+				// Schreiben in Datei
+				schreiben(arrCpy, liste->getAnz(), nameDat);
+			}
+			break;
+			default:
+				cout << "ungueltige eingabe!" << endl;
+				break;
 		}
+	} while(choise != 5);
+
+	if(liste != nullptr){
+		delete liste;
 	}
-	while (choice != 4);
-
-			
-	
-	
-	getchar();
-	getchar();
-
-	return 0;
 }
